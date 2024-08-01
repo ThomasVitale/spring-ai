@@ -17,7 +17,7 @@ package org.springframework.ai.image;
 
 public class ImageOptionsBuilder {
 
-	private class ImageModelOptionsImpl implements ImageOptions {
+	private static class ImageModelOptionsImpl implements ImageOptions {
 
 		private Integer n;
 
@@ -28,6 +28,8 @@ public class ImageOptionsBuilder {
 		private Integer height;
 
 		private String responseFormat;
+
+		private String style;
 
 		@Override
 		public Integer getN() {
@@ -74,6 +76,15 @@ public class ImageOptionsBuilder {
 			this.height = height;
 		}
 
+		@Override
+		public String getStyle() {
+			return style;
+		}
+
+		public void setStyle(String style) {
+			this.style = style;
+		}
+
 	}
 
 	private final ImageModelOptionsImpl options = new ImageModelOptionsImpl();
@@ -108,6 +119,11 @@ public class ImageOptionsBuilder {
 
 	public ImageOptionsBuilder withHeight(Integer height) {
 		options.setHeight(height);
+		return this;
+	}
+
+	public ImageOptionsBuilder withStyle(String style) {
+		options.setModel(style);
 		return this;
 	}
 

@@ -25,6 +25,7 @@ import java.util.Objects;
  * QianFan Image API options. QianFanImageOptions.java
  *
  * @author Geng Rong
+ * @author Thomas Vitale
  * @since 1.0
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -174,6 +175,7 @@ public class QianFanImageOptions implements ImageOptions {
 		this.size = this.width + "x" + this.height;
 	}
 
+	@Override
 	public String getStyle() {
 		return this.style;
 	}

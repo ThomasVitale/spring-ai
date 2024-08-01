@@ -33,4 +33,6 @@ public interface ImageOptions extends ModelOptions {
 
 	String getResponseFormat(); // openai - url or base64 : stability ai byte[] or base64
 
+	String getStyle();
+
 }

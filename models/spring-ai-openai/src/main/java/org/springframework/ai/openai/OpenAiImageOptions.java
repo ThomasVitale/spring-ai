@@ -27,6 +27,7 @@ import java.util.Objects;
  *
  * @author Mark Pollack
  * @author Christian Tzolov
+ * @author Thomas Vitale
  * @since 0.8.0
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -208,6 +209,7 @@ public class OpenAiImageOptions implements ImageOptions {
 		this.size = this.width + "x" + this.height;
 	}
 
+	@Override
 	public String getStyle() {
 		return this.style;
 	}

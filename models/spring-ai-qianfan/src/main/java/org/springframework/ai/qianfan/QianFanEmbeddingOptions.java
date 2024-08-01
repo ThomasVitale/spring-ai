@@ -70,6 +70,7 @@ public class QianFanEmbeddingOptions implements EmbeddingOptions {
 
 	}
 
+	@Override
 	public String getModel() {
 		return this.model;
 	}

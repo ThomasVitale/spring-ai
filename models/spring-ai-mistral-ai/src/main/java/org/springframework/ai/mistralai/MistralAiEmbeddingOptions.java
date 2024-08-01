@@ -41,6 +41,7 @@ public class MistralAiEmbeddingOptions implements EmbeddingOptions {
 		return new Builder();
 	}
 
+	@Override
 	public String getModel() {
 		return this.model;
 	}

@@ -23,6 +23,7 @@ import org.springframework.ai.embedding.EmbeddingOptions;
  * The configuration information for the embedding requests.
  *
  * @author Christian Tzolov
+ * @author Thomas Vitale
  * @since 0.8.0
  */
 public class AzureOpenAiEmbeddingOptions implements EmbeddingOptions {
@@ -131,6 +132,11 @@ public class AzureOpenAiEmbeddingOptions implements EmbeddingOptions {
 		this.user = user;
 	}
 
+	@Override
+	public String getModel() {
+		return getDeploymentName();
+	}
+
 	public String getDeploymentName() {
 		return this.deploymentName;
 	}
@@ -147,6 +153,7 @@ public class AzureOpenAiEmbeddingOptions implements EmbeddingOptions {
 		this.inputType = inputType;
 	}
 
+	@Override
 	public Integer getDimensions() {
 		return this.dimensions;
 	}

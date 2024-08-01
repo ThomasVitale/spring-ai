@@ -59,6 +59,7 @@ public class ZhiPuAiEmbeddingOptions implements EmbeddingOptions {
 
 	}
 
+	@Override
 	public String getModel() {
 		return this.model;
 	}

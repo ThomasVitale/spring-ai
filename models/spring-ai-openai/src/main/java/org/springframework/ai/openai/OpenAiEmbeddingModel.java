@@ -15,11 +15,8 @@
  */
 package org.springframework.ai.openai;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.MetadataMode;
 import org.springframework.ai.embedding.AbstractEmbeddingModel;
@@ -33,8 +30,11 @@ import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.ai.openai.api.OpenAiApi.EmbeddingList;
 import org.springframework.ai.openai.metadata.OpenAiUsage;
 import org.springframework.ai.retry.RetryUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
+
+import java.util.List;
 
 /**
  * Open AI Embedding Model implementation.
@@ -92,7 +92,7 @@ public class OpenAiEmbeddingModel extends AbstractEmbeddingModel {
 	 */
 	public OpenAiEmbeddingModel(OpenAiApi openAiApi, MetadataMode metadataMode, OpenAiEmbeddingOptions options,
 			RetryTemplate retryTemplate) {
-		Assert.notNull(openAiApi, "OpenAiService must not be null");
+		Assert.notNull(openAiApi, "openAiApi must not be null");
 		Assert.notNull(metadataMode, "metadataMode must not be null");
 		Assert.notNull(options, "options must not be null");
 		Assert.notNull(retryTemplate, "retryTemplate must not be null");
@@ -111,8 +111,9 @@ public class OpenAiEmbeddingModel extends AbstractEmbeddingModel {
 
 	@Override
 	public EmbeddingResponse call(EmbeddingRequest request) {
+		OpenAiEmbeddingOptions requestOptions = mergeOptions(request.getOptions(), this.defaultOptions);
 
-		org.springframework.ai.openai.api.OpenAiApi.EmbeddingRequest<List<String>> apiRequest = createRequest(request);
+		OpenAiApi.EmbeddingRequest<List<String>> apiRequest = createRequest(request, requestOptions);
 
 		EmbeddingList<OpenAiApi.Embedding> apiEmbeddingResponse = this.retryTemplate
 			.execute(ctx -> this.openAiApi.embeddings(apiRequest).getBody());
@@ -133,21 +134,31 @@ public class OpenAiEmbeddingModel extends AbstractEmbeddingModel {
 		return new EmbeddingResponse(embeddings, metadata);
 	}
 
-	@SuppressWarnings("unchecked")
-	private OpenAiApi.EmbeddingRequest<List<String>> createRequest(EmbeddingRequest request) {
-		org.springframework.ai.openai.api.OpenAiApi.EmbeddingRequest<List<String>> apiRequest = (this.defaultOptions != null)
-				? new org.springframework.ai.openai.api.OpenAiApi.EmbeddingRequest<>(request.getInstructions(),
-						this.defaultOptions.getModel(), this.defaultOptions.getEncodingFormat(),
-						this.defaultOptions.getDimensions(), this.defaultOptions.getUser())
-				: new org.springframework.ai.openai.api.OpenAiApi.EmbeddingRequest<>(request.getInstructions(),
-						OpenAiApi.DEFAULT_EMBEDDING_MODEL);
+	private OpenAiApi.EmbeddingRequest<List<String>> createRequest(EmbeddingRequest request,
+			OpenAiEmbeddingOptions requestOptions) {
+		return new OpenAiApi.EmbeddingRequest<>(request.getInstructions(), requestOptions.getModel(),
+				requestOptions.getEncodingFormat(), requestOptions.getDimensions(), requestOptions.getUser());
+	}
 
-		if (request.getOptions() != null && !EmbeddingOptions.EMPTY.equals(request.getOptions())) {
-			apiRequest = ModelOptionsUtils.merge(request.getOptions(), apiRequest,
-					org.springframework.ai.openai.api.OpenAiApi.EmbeddingRequest.class);
+	/**
+	 * Merge runtime and default {@link EmbeddingOptions} to compute the final options to
+	 * use in the request.
+	 */
+	private OpenAiEmbeddingOptions mergeOptions(@Nullable EmbeddingOptions runtimeOptions,
+			OpenAiEmbeddingOptions defaultOptions) {
+		if (runtimeOptions == null) {
+			return defaultOptions;
 		}
 
-		return apiRequest;
+		return OpenAiEmbeddingOptions.builder()
+			// Handle portable embedding options
+			.withModel(ModelOptionsUtils.mergeOption(runtimeOptions.getModel(), defaultOptions.getModel()))
+			.withDimensions(
+					ModelOptionsUtils.mergeOption(runtimeOptions.getDimensions(), defaultOptions.getDimensions()))
+			// Handle OpenAI specific embedding options
+			.withEncodingFormat(defaultOptions.getEncodingFormat())
+			.withUser(defaultOptions.getUser())
+			.build();
 	}
 
 }

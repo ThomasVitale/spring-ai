@@ -312,6 +312,7 @@ public class OllamaOptions implements FunctionCallingOptions, ChatOptions, Embed
 		return this;
 	}
 
+	@Override
 	public String getModel() {
 		return model;
 	}

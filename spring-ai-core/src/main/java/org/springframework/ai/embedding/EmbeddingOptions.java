@@ -19,13 +19,14 @@ import org.springframework.ai.model.ModelOptions;
 
 /**
  * @author Christian Tzolov
+ * @author Thomas Vitale
  */
 public interface EmbeddingOptions extends ModelOptions {
 
-	public static class EmptyEmbeddingOptions implements EmbeddingOptions {
+	String getModel();
 
+	default Integer getDimensions() {
+		return null;
 	}
-
-	public static EmbeddingOptions EMPTY = new EmptyEmbeddingOptions();
 
 }

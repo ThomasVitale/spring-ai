@@ -25,6 +25,7 @@ import org.springframework.ai.embedding.EmbeddingOptions;
 
 /**
  * @author Christian Tzolov
+ * @author Thomas Vitale
  */
 @JsonInclude(Include.NON_NULL)
 public class BedrockCohereEmbeddingOptions implements EmbeddingOptions {
@@ -68,6 +69,11 @@ public class BedrockCohereEmbeddingOptions implements EmbeddingOptions {
 			return this.options;
 		}
 
+	}
+
+	@Override
+	public String getModel() {
+		return null;
 	}
 
 	public InputType getInputType() {

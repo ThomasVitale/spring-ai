@@ -23,6 +23,7 @@ import org.springframework.ai.embedding.EmbeddingOptions;
 import org.springframework.util.Assert;
 
 /**
+ * @author Thomas Vitale
  * @author Wei Jiang
  */
 @JsonInclude(Include.NON_NULL)
@@ -52,6 +53,11 @@ public class BedrockTitanEmbeddingOptions implements EmbeddingOptions {
 			return this.options;
 		}
 
+	}
+
+	@Override
+	public String getModel() {
+		return null;
 	}
 
 	public InputType getInputType() {

@@ -28,6 +28,7 @@ import org.springframework.ai.postgresml.PostgresMlEmbeddingModel.VectorType;
 
 /**
  * @author Christian Tzolov
+ * @author Thomas Vitale
  */
 @JsonInclude(Include.NON_NULL)
 public class PostgresMlEmbeddingOptions implements EmbeddingOptions {
@@ -96,6 +97,11 @@ public class PostgresMlEmbeddingOptions implements EmbeddingOptions {
 			return this.options;
 		}
 
+	}
+
+	@Override
+	public String getModel() {
+		return null;
 	}
 
 	public String getTransformer() {

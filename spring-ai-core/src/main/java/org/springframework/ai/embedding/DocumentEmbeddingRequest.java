@@ -34,11 +34,11 @@ public class DocumentEmbeddingRequest implements ModelRequest<List<Document>> {
 	private final EmbeddingOptions options;
 
 	public DocumentEmbeddingRequest(Document... inputs) {
-		this(Arrays.asList(inputs), EmbeddingOptions.EMPTY);
+		this(Arrays.asList(inputs), EmbeddingOptionsBuilder.builder().build());
 	}
 
 	public DocumentEmbeddingRequest(List<Document> inputs) {
-		this(inputs, EmbeddingOptions.EMPTY);
+		this(inputs, EmbeddingOptionsBuilder.builder().build());
 	}
 
 	public DocumentEmbeddingRequest(List<Document> inputs, EmbeddingOptions options) {

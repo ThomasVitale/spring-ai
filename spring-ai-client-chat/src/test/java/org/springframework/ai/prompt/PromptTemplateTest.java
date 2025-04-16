@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 the original author or authors.
+ * Copyright 2023-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,7 +118,7 @@ public class PromptTemplateTest {
 
 		PromptTemplate unfilledPromptTemplate = new PromptTemplate(templateString);
 		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(unfilledPromptTemplate::render)
-			.withMessage("Not all template variables were replaced. Missing variable names are [items]");
+			.withMessage("Not all variables were replaced in the template. Missing variable names are: [items].");
 	}
 
 	@Test

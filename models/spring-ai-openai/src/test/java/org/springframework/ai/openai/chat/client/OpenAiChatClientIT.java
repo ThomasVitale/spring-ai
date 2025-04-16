@@ -30,6 +30,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.chat.prompt.template.st.StTemplateRenderer;
 import reactor.core.publisher.Flux;
 
 import org.springframework.ai.chat.client.ChatClient;
@@ -219,8 +220,9 @@ class OpenAiChatClientIT extends AbstractIT {
 				.advisors(new SimpleLoggerAdvisor())
 				.user(u -> u
 						.text("Generate the filmography of 5 movies for Tom Hanks. " + System.lineSeparator()
-								+ "{format}")
+								+ "<format>")
 						.param("format", outputConverter.getFormat()))
+				.promptTemplateRenderer(StTemplateRenderer.builder().startDelimiterToken('<').endDelimiterToken('>').build())
 				.stream()
 				.chatResponse();
 

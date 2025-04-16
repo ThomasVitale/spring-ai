@@ -32,6 +32,7 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.prompt.template.TemplateRenderer;
 import org.springframework.ai.content.Media;
 import org.springframework.ai.converter.StructuredOutputConverter;
 import org.springframework.ai.model.function.FunctionCallback;
@@ -254,6 +255,8 @@ public interface ChatClient {
 
 		ChatClientRequestSpec user(Consumer<PromptUserSpec> consumer);
 
+		ChatClientRequestSpec promptTemplateRenderer(TemplateRenderer templateRenderer);
+
 		CallResponseSpec call();
 
 		StreamResponseSpec stream();
@@ -312,6 +315,8 @@ public interface ChatClient {
 		Builder defaultFunctions(FunctionCallback... functionCallbacks);
 
 		Builder defaultToolContext(Map<String, Object> toolContext);
+
+		Builder defaultPromptTemplateRenderer(TemplateRenderer templateRenderer);
 
 		Builder clone();
 

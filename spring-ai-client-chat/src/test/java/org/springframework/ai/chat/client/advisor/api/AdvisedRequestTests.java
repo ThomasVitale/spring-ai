@@ -28,6 +28,8 @@ import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.ChatOptions;
+import org.springframework.ai.chat.prompt.template.TemplateRenderer;
+import org.springframework.ai.chat.prompt.template.st.StTemplateRenderer;
 import org.springframework.ai.content.Media;
 import org.springframework.ai.model.tool.ToolCallingChatOptions;
 import org.springframework.ai.tool.ToolCallback;
@@ -157,7 +159,7 @@ class AdvisedRequestTests {
 	}
 
 	@Test
-	void whenConvertToAndFromChatClientRequest() {
+	void whenConvertToAndFromChatClientRequestWithDefaultTemplateRenderer() {
 		ChatModel chatModel = mock(ChatModel.class);
 		ChatOptions chatOptions = ToolCallingChatOptions.builder().build();
 		List<Message> messages = List.of(mock(UserMessage.class));
@@ -208,6 +210,70 @@ class AdvisedRequestTests {
 		AdvisedRequest convertedAdvisedRequest = AdvisedRequest.from(chatClientRequest);
 		assertThat(convertedAdvisedRequest.toPrompt()).isEqualTo(chatClientRequest.prompt());
 		assertThat(convertedAdvisedRequest.adviseContext()).containsAllEntriesOf(chatClientRequest.context());
+		assertThat(chatClientRequest.context().get(ChatClientAttributes.USER_PARAMS.getKey())).isEqualTo(userParams);
+		assertThat(chatClientRequest.context().get(ChatClientAttributes.SYSTEM_PARAMS.getKey()))
+			.isEqualTo(systemParams);
+	}
+
+	@Test
+	void whenConvertToAndFromChatClientRequestWithCustomTemplateRenderer() {
+		ChatModel chatModel = mock(ChatModel.class);
+		ChatOptions chatOptions = ToolCallingChatOptions.builder().build();
+		SystemMessage systemMessage = new SystemMessage("Instructions <name>");
+		UserMessage userMessage = new UserMessage("Question <name>", mock(Media.class));
+		Map<String, Object> systemParams = Map.of("name", "Spring AI");
+		Map<String, Object> userParams = Map.of("name", "Spring AI");
+
+		AdvisedRequest advisedRequest = AdvisedRequest.builder()
+			.chatModel(chatModel)
+			.chatOptions(chatOptions)
+			.systemText(systemMessage.getText())
+			.systemParams(systemParams)
+			.userText(userMessage.getText())
+			.userParams(userParams)
+			.media(userMessage.getMedia())
+			.build();
+
+		TemplateRenderer customRenderer = StTemplateRenderer.builder()
+			.startDelimiterToken('<')
+			.endDelimiterToken('>')
+			.build();
+		ChatClientRequest chatClientRequest = advisedRequest.toChatClientRequest(customRenderer);
+
+		assertThat(chatClientRequest.prompt().getInstructions()).hasSize(2);
+		assertThat(chatClientRequest.prompt().getInstructions().get(0)).isInstanceOf(SystemMessage.class);
+		assertThat(chatClientRequest.prompt().getInstructions().get(1)).isInstanceOf(UserMessage.class);
+		assertThat(chatClientRequest.context().get(ChatClientAttributes.USER_PARAMS.getKey())).isEqualTo(userParams);
+		assertThat(chatClientRequest.context().get(ChatClientAttributes.SYSTEM_PARAMS.getKey()))
+			.isEqualTo(systemParams);
+	}
+
+	@Test
+	void whenUsingToPromptWithCustomTemplateRenderer() {
+		ChatModel chatModel = mock(ChatModel.class);
+		SystemMessage systemMessage = new SystemMessage("Instructions <name>");
+		UserMessage userMessage = new UserMessage("Question <name>", mock(Media.class));
+		Map<String, Object> systemParams = Map.of("name", "Spring AI");
+		Map<String, Object> userParams = Map.of("name", "Spring AI");
+
+		AdvisedRequest advisedRequest = AdvisedRequest.builder()
+			.chatModel(chatModel)
+			.systemText(systemMessage.getText())
+			.systemParams(systemParams)
+			.userText(userMessage.getText())
+			.userParams(userParams)
+			.media(userMessage.getMedia())
+			.build();
+
+		TemplateRenderer customRenderer = StTemplateRenderer.builder()
+			.startDelimiterToken('<')
+			.endDelimiterToken('>')
+			.build();
+		var prompt = advisedRequest.toPrompt(customRenderer);
+
+		assertThat(prompt.getInstructions()).hasSize(2);
+		assertThat(prompt.getInstructions().get(0).getText()).isEqualTo("Instructions Spring AI");
+		assertThat(prompt.getInstructions().get(1).getText()).isEqualTo("Question Spring AI");
 	}
 
 }

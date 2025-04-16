@@ -35,6 +35,8 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.ai.chat.prompt.template.TemplateRenderer;
+import org.springframework.ai.chat.prompt.template.st.StTemplateRenderer;
 import org.springframework.ai.content.Media;
 import org.springframework.ai.model.function.FunctionCallback;
 import org.springframework.ai.model.function.FunctionCallingOptions;
@@ -201,8 +203,12 @@ public record AdvisedRequest(
 	}
 
 	public ChatClientRequest toChatClientRequest() {
+		return toChatClientRequest(StTemplateRenderer.builder().build());
+	}
+
+	public ChatClientRequest toChatClientRequest(TemplateRenderer templateRenderer) {
 		return ChatClientRequest.builder()
-			.prompt(toPrompt())
+			.prompt(toPrompt(templateRenderer))
 			.context(this.adviseContext)
 			.context(ChatClientAttributes.ADVISORS.getKey(), this.advisors)
 			.context(ChatClientAttributes.CHAT_MODEL.getKey(), this.chatModel)
@@ -212,12 +218,21 @@ public record AdvisedRequest(
 	}
 
 	public Prompt toPrompt() {
+		return toPrompt(StTemplateRenderer.builder().build());
+	}
+
+	public Prompt toPrompt(TemplateRenderer templateRenderer) {
 		var messages = new ArrayList<>(this.messages());
 
 		String processedSystemText = this.systemText();
 		if (StringUtils.hasText(processedSystemText)) {
 			if (!CollectionUtils.isEmpty(this.systemParams())) {
-				processedSystemText = new PromptTemplate(processedSystemText, this.systemParams()).render();
+				processedSystemText = PromptTemplate.builder()
+					.template(processedSystemText)
+					.variables(this.systemParams())
+					.renderer(templateRenderer)
+					.build()
+					.render();
 			}
 			messages.add(new SystemMessage(processedSystemText));
 		}
@@ -226,7 +241,12 @@ public record AdvisedRequest(
 			Map<String, Object> userParams = new HashMap<>(this.userParams());
 			String processedUserText = this.userText();
 			if (!CollectionUtils.isEmpty(userParams)) {
-				processedUserText = new PromptTemplate(processedUserText, userParams).render();
+				processedUserText = PromptTemplate.builder()
+					.template(processedUserText)
+					.variables(userParams)
+					.renderer(templateRenderer)
+					.build()
+					.render();
 			}
 			messages.add(new UserMessage(processedUserText, this.media()));
 		}

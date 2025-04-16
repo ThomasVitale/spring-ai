@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 the original author or authors.
+ * Copyright 2023-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.ai.chat.prompt.template.st.StTemplateRenderer;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -36,6 +38,7 @@ import org.springframework.ai.evaluation.EvaluationResponse;
 import org.springframework.ai.evaluation.RelevancyEvaluator;
 import org.springframework.ai.integration.tests.TestApplication;
 import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
 import org.springframework.ai.rag.preretrieval.query.expansion.MultiQueryExpander;
 import org.springframework.ai.rag.preretrieval.query.transformation.CompressionQueryTransformer;
 import org.springframework.ai.rag.preretrieval.query.transformation.RewriteQueryTransformer;
@@ -241,6 +244,53 @@ class RetrievalAugmentationAdvisorIT {
 				.numberOfQueries(2)
 				.build())
 			.documentRetriever(VectorStoreDocumentRetriever.builder().vectorStore(this.pgVectorStore).build())
+			.build();
+
+		ChatResponse chatResponse = ChatClient.builder(this.openAiChatModel)
+			.build()
+			.prompt(question)
+			.advisors(ragAdvisor)
+			.call()
+			.chatResponse();
+
+		assertThat(chatResponse).isNotNull();
+
+		String response = chatResponse.getResult().getOutput().getText();
+		System.out.println(response);
+		assertThat(response).containsIgnoringCase("Highlands");
+
+		evaluateRelevancy(question, chatResponse);
+	}
+
+	@Test
+	void ragCustomPrompt() {
+		PromptTemplate customPromptTemplate = PromptTemplate.builder()
+			.renderer(StTemplateRenderer.builder().startDelimiterToken('<').endDelimiterToken('>').build())
+			.template("""
+					Context information is below.
+
+					---------------------
+					<context>
+					---------------------
+
+					Given the context information and no prior knowledge, answer the query.
+
+					Follow these rules:
+
+					1. If the answer is not in the context, just say that you don't know.
+					2. Avoid statements like "Based on the context..." or "The provided information...".
+
+					Query: <query>
+
+					Answer:
+					""")
+			.build();
+
+		String question = "Where does the adventure of Anacletus and Birba take place?";
+
+		RetrievalAugmentationAdvisor ragAdvisor = RetrievalAugmentationAdvisor.builder()
+			.documentRetriever(VectorStoreDocumentRetriever.builder().vectorStore(this.pgVectorStore).build())
+			.queryAugmenter(ContextualQueryAugmenter.builder().promptTemplate(customPromptTemplate).build())
 			.build();
 
 		ChatResponse chatResponse = ChatClient.builder(this.openAiChatModel)

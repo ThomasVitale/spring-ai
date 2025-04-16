@@ -14,33 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.ai.chat.prompt;
+package org.springframework.ai.chat.prompt.template;
+
+import java.util.Map;
+import java.util.function.BiFunction;
 
 /**
- * @deprecated in favor of {@link TemplateRenderer}.
+ * Renders a template using a given strategy.
+ *
+ * @author Thomas Vitale
+ * @since 1.0.0
  */
-@Deprecated
-public enum TemplateFormat {
+public interface TemplateRenderer extends BiFunction<String, Map<String, Object>, String> {
 
-	ST("ST");
-
-	private final String value;
-
-	TemplateFormat(String value) {
-		this.value = value;
-	}
-
-	public static TemplateFormat fromValue(String value) {
-		for (TemplateFormat templateFormat : TemplateFormat.values()) {
-			if (templateFormat.getValue().equals(value)) {
-				return templateFormat;
-			}
-		}
-		throw new IllegalArgumentException("Invalid TemplateFormat value: " + value);
-	}
-
-	public String getValue() {
-		return this.value;
-	}
+	@Override
+	String apply(String template, Map<String, Object> variables);
 
 }

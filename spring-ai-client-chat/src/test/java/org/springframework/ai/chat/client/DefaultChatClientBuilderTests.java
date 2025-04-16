@@ -95,4 +95,12 @@ class DefaultChatClientBuilderTests {
 			.hasMessage("charset cannot be null");
 	}
 
+	@Test
+	void whenTemplateRendererIsNullThenThrows() {
+		DefaultChatClientBuilder builder = new DefaultChatClientBuilder(mock(ChatModel.class));
+		assertThatThrownBy(() -> builder.defaultPromptTemplateRenderer(null))
+			.isInstanceOf(IllegalArgumentException.class)
+			.hasMessage("templateRenderer cannot be null");
+	}
+
 }
